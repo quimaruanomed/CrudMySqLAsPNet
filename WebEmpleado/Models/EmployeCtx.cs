@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebEmpleado.Models
 {
-    public class EmployeCtx : DbContext
+    public class EmployeDbConext : DbContext
     {
-        public EmployeCtx(DbContextOptions<EmployeCtx> options) : base(options)
+        public EmployeDbConext(DbContextOptions<EmployeDbConext> options) : base(options)
         {
 
 

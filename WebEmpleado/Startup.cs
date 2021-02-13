@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using WebEmpleado.Models;
+using MySql.Data.MySqlClient;
+using WebEmpleado.Data;
 
 namespace WebEmpleado
 {
@@ -27,7 +29,10 @@ namespace WebEmpleado
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<EmployeCtx>(options => options.UseInMemoryDatabase("EmployeDatabase"));
+            services.AddDbContext<EmployeDbConext>(options =>
+            options.UseMySql(Configuration.GetConnectionString("Default")));
+           
+            services.AddTransient<MySqlConnection>(_ => new MySqlConnection(Configuration["ConnectionStrings:Default"]));
             services.AddControllers();
         }
 

@@ -7,7 +7,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.SqlServer.Management.Smo;
+using MySql.Data.MySqlClient;
+using WebEmpleado.Data;
 using WebEmpleado.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace WebEmpleado.Controllers
 {
@@ -17,9 +21,11 @@ namespace WebEmpleado.Controllers
     public class EmployesController : ControllerBase
     {
 
-        private readonly EmployeCtx _context;
+        private readonly EmployeDbConext _context;
         
-        public EmployesController(EmployeCtx context)
+       
+        
+        public EmployesController (EmployeDbConext context)
         {
             _context = context;
         }
@@ -27,90 +33,104 @@ namespace WebEmpleado.Controllers
         [AcceptVerbs("GET")]
         //Primer Get que se ejecuta cuando complilamos la aplicación    
         [HttpGet]
-        public string GetHello(string H)
-        {
-            return "     HOLA MUNDO     ";
-        }
-
-       
-        //Metodo que mostrará el empleado filtrando por id 
-
-        [HttpGet("{id}")]
-
-        public async Task<ActionResult<Employe>> GetEmploye(int id)
-        {
-            var employe = await _context.Employe.FindAsync(id);
-            if (employe == null)
-            {
-                return NotFound();
-
-            }
-            return employe;
-        }
-        private bool EmployeExists(int id)
-        {
-            return _context.Employe.Any(e => e.id == id);
-        }
+        
         [HttpGet]
-        [Route("api/[controller]/n")]
         public async Task<ActionResult<IEnumerable<Employe>>> GetEmployes()
         {
             return await _context.Employe.ToListAsync();
         }
-        [HttpPost]
-        public async Task<ActionResult<Employe>> PostEmploye(Employe employe)
+        [HttpGet("{id}")]
+
+        public async Task<ActionResult<Employe>> GetEmployesId(int Id)
         {
-            _context.Employe.Add(employe);
-            await _context.SaveChangesAsync();
-           return CreatedAtAction("GetEmploye", new { id = employe.id }, employe);
+            var employeId = await _context.Employe.FindAsync(Id);
+            if (employeId == null)
+            {
+                return NotFound("Registro no encontrado");
+
+            }
+            return employeId;
 
         }
 
-
-        // Método que actualiza todo el registro/campo filtrando por id 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEmploye(int id, Employe employe)
+        //Método para añadir un nuevo registro 
+        [HttpPost]
+        public async Task<ActionResult<Employe>> PostEmployeId(Employe employe)
         {
-            if (!EmployeExists(id))
+            _context.Employe.Add(employe);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetEmployesId), new { Id = employe.id }, employe);
+
+        }
+        //Método para actualizar parcialmente los registros 
+        [HttpPut("{id}")]
+
+        public async Task<IActionResult> PutEmployeId(int Id, Employe employe)
+        {
+            if (Id != employe.id)
             {
                 return BadRequest();
             }
             _context.Entry(employe).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
 
-            try
+
+        }
+        //Método para borrar registros filtrando por Id
+        [HttpDelete("{id}")]
+
+        public async Task<IActionResult> DeleteId(int Id)
+        {
+            var employeId = await _context.Employe.FindAsync(Id);
+            if (employeId == null)
             {
-                await _context.SaveChangesAsync();
+                return NotFound("Registro no encontrado");
+
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (id != employe.id)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            _context.Employe.Remove(employeId);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
-
-        //Medodo que borra el registro filtrando por id 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Employe>> DeleteEmploye(int id)
+        //Método Patch que comprubea si existe el id en la base de datos , devolverá un código en función del resultado de la ejecución del código  
+        [HttpPatch("FnameS/{id}")]
+        public async Task<IActionResult> ChangeFnameS(int id,[FromQuery] string FnameS)
         {
-
-            var employe = await _context.Employe.FindAsync(id);
-            if (employe == null)
+            if (string.IsNullOrWhiteSpace(FnameS))
+            {
+                return BadRequest();
+            }
+            var Employe = await _context.Employe.FindAsync(id);
+            if (Employe == null)
             {
                 return NotFound();
+
             }
-            _context.Employe.Remove(employe);
+            if (await _context.Employe.Where(x => x.FnameS == FnameS && x.id != id).AnyAsync())
+            {
+                return BadRequest("El id ya Existe");
+
+            }
+            Employe.FnameS = FnameS;
             await _context.SaveChangesAsync();
-            return employe;
+            return StatusCode(200, Employe);
         }
-       
+        //Método que ejecutará el cambio parcial
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchId(int Id, JsonPatchDocument<Employe> _ChangeEmploye)
+        {
+
+            var ChangeEmploye = await _context.Employe.FindAsync(Id);
+            if (ChangeEmploye == null)
+            {
+                return NotFound("Registro no encontrado");
+            }
+            _ChangeEmploye.ApplyTo(ChangeEmploye, (Microsoft.AspNetCore.JsonPatch.Adapters.IObjectAdapter)ModelState);
+            await _context.SaveChangesAsync();
+            return Ok(ChangeEmploye);
+
         }
+    }
     }
 
     
