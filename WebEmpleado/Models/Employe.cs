@@ -20,42 +20,7 @@ namespace WebEmpleado.Models
         {
 
         }
-        //private readonly EmployeDbContext _context;
-        //public Employe(EmployeDbContext context)
-        //{
-        //    _context = context;
-        //}
-        //public IEnumerable<Employe> GetEmploye()
-        //{
-        //    return _context.Employe.ToList();
-        //}
-        //public void InsertEmploye(Employe employe)
-        //{
-        //    _context.Employe.Add(employe);
-        //}
-        //public void Save()
-        //{
-        //    _context.SaveChanges();
-        //}
-        //private bool _disposed;
-
-        //protected virtual void Dispose(bool disposing)
-        //{
-        //    if (!_disposed)
-        //    {
-        //        if (disposing)
-        //        {
-        //            _context.Dispose();
-        //        }
-        //    }
-        //    _disposed = true;
-        //}
-
-        //public void Dispose()
-        //{
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //}
+        
     }
 }
 
